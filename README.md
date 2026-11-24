@@ -1,113 +1,146 @@
-# Coding Workshop
+# ACME Inc. Project Management
 
-The goal of this coding workshop is to enable and assess the hands-on skills
-of participants through development of a practical technical solution that
-solves a theoretical business problem.
+A responsive project portfolio app for tracking project health, deliverables and
+dependencies, team allocations, budgets, and user access. It is built on the
+Citi Coding Workshop full-stack template.
 
-## Getting Started
+## Features
 
-Navigate to [Coding Workshop - Main Guide](./docs/README.md) to get started.
+- Dashboard with project status, at-risk projects, over-allocated members,
+  planned-versus-spent budgets, deliverable progress, and dependency chains.
+- Search and filters for project, team, deliverable, and budget lists.
+- CRUD for projects, team members, allocations, deliverables, budget entries,
+  and (for admins) users.
+- Admin, manager, and member roles. Admins can manage users, managers can
+  manage project data, and members have read-only access.
+- Responsive layouts for mobile and desktop, with loading, success, and error
+  feedback.
 
-## Coding Workshop Example
+## Architecture
 
-Coding workshop organizer(s) will provide instructions to follow by email. Here
-below is a real example of requirements and expectations for participant(s):
+- **Frontend:** React and Vite, with Material UI and `react-responsive`.
+  Service requests are in `frontend/src/services/api.js`; pages are in
+  `frontend/src/pages/`.
+- **Backend:** Python 3.13 Lambda handlers, one service per folder under
+  `backend/`. Each service includes an identical `db.py` helper.
+- **Database:** PostgreSQL via `psycopg[binary]==3.2.3`.
+- **Authentication:** PBKDF2-HMAC password hashes and signed, expiring HMAC
+  tokens. Set `AUTH_SECRET` to a strong secret in deployed environments.
 
-### Requirements: Business Problem
+## Run locally
 
-Our company ACME Inc. is going through a massive organizational transformation
-to become a more data-driven organization. Information about teams structure
-and performance is currently scattered across multiple systems, making it
-difficult to get a comprehensive view of team dynamics and achievements.
+The workshop development script starts the local services, including the
+frontend, Lambda API, and PostgreSQL. From the repository root:
 
-We are struggling to answer simple questions like:
+```sh
+./bin/start-dev.sh
+```
 
-* Who are the members of each team?
-* Where are the teams located?
-* What are the key achievements of each team on a monthly basis?
-* How many teams have team leader not co-located with team members?
-* How many teams have team leader as a non-direct staff?
-* How many teams have non-direct staff to employees ratio above 20%?
-* How many teams are reporting to an organization leader?
+Initialize the database once after startup (and again only if you need to
+initialize a fresh database):
 
-### Requirements: Technical Solution
+```sh
+curl --fail http://localhost:3001/api/health
+curl --fail http://localhost:3001/api/setup
+```
 
-As part of this transformation, we are looking to build a centralized team
-management tool that will allow us to track team members, team locations,
-monthly team achievements, as well as individual-level and team-level metadata.
-Initial focus is to provide a self-service capability without any integrations
-with other tools such as Employee Directory, Project Tracking, or Performance
-Management.
+Open [http://localhost:3000](http://localhost:3000) and sign in with one of
+these local demo accounts:
 
-The technical solution involves developing a stand-alone web application using
-modern technologies. The application will have the following features:
+| Role | Username |
+| --- | --- |
+| Admin | `admin` |
+| Manager | `manager` |
+| Member | `member` |
 
-* User authentication and authorization
-* Role-based access control
-* CRUD operations for individuals, teams, achievements and metadata
-* Search and filter functionality
-* Responsive design for mobile and desktop usage
+These are local demo accounts. Their development-only passwords are not
+documented in this public README; never reuse demo credentials in production.
+Configure a strong `AUTH_SECRET` before deployment.
 
-### Requirements: Technology Stack
+The local database defaults are defined in the service connection helper.
+Override them with `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_NAME`,
+`POSTGRES_USER`, and `POSTGRES_PASS`. The frontend API base defaults to
+`http://localhost:3001`; override it with `VITE_API_URL` when needed.
 
-The following technologies are required to build the application:
+## API
 
-* Frontend: HTML, CSS, React.js with React Responsive and Material UI Components
-* Backend: Python
-* Database: PostgreSQL
+All endpoints return JSON. Except for health, setup, and login, API requests
+require an `Authorization: Bearer <token>` header. The app obtains the token
+from `/api/auth/login`. Locally the frontend also supports the workshop proxy's
+Authorization-header limitation; deployed requests use the Authorization
+header.
 
-The following technologies are good to know, as they are used to manage and
-deploy code:
+| Service | Routes | Access |
+| --- | --- | --- |
+| `health` | `GET /api/health` | Public |
+| `setup` | `GET /api/setup` | Public; creates schema and seeds empty tables |
+| `auth` | `POST /api/auth/login`, `GET /api/auth/me` | Login is public; `/me` requires a token |
+| `auth` | `GET/POST /api/auth/users`, `PUT/DELETE /api/auth/users/{id}` | Admin |
+| `dashboard` | `GET /api/dashboard` | Any signed-in user |
+| `projects` | `GET/POST /api/projects`, `GET/PUT/DELETE /api/projects/{id}` | Reads: any signed-in user; writes: admin or manager |
+| `team_members` | `GET/POST /api/team_members`, `GET/PUT/DELETE /api/team_members/{id}` | Reads: any signed-in user; writes: admin or manager |
+| `allocations` | `GET/POST /api/allocations`, `GET/PUT/DELETE /api/allocations/{id}` | Reads: any signed-in user; writes: admin or manager |
+| `deliverables` | `GET/POST /api/deliverables`, `GET/PUT/DELETE /api/deliverables/{id}` | Reads: any signed-in user; writes: admin or manager |
+| `budget_entries` | `GET/POST /api/budget_entries`, `GET/PUT/DELETE /api/budget_entries/{id}` | Reads: any signed-in user; writes: admin or manager |
 
-* Version Control: Git, GitHub
-* Infrastructure: Terraform
-* Deployment Mode: Shell Scripts
-* Deployment Target: AWS Serverless (e.g. S3, CloudFront, Lambda, RDS)
+List routes accept relevant `search` (or `name`), `status`, and `department`
+query parameters. Deliverables accept dependency IDs in `depends_on`; the
+backend rejects missing or cyclic dependencies.
 
-### Expectations: Value-Based Outcomes
+## Tests and checks
 
-By the end of the workshop, participants will have developed a functional
-web application that meets the requirements outlined above. The application
-will be deployed to a cloud environment and accessible via a web browser.
-Participants will also gain hands-on experience with modern web development
-technologies and best practices.
+Install the backend test tools and run the mocked Lambda handler tests:
 
-## Contributing
+```sh
+python3 -m pip install -r tests/requirements.txt
+python3 -m py_compile backend/*/function.py
+python3 -m pytest -q tests/backend --cov=backend --cov-report=term-missing --cov-fail-under=80
+```
 
-See the [CONTRIBUTING](./CONTRIBUTING.md) resource for more details.
+Run the frontend tests, lint, and production build:
 
-## License
+```sh
+cd frontend
+npm install
+npm run test
+npm run lint
+npm run build
+```
 
-This library is licensed under the MIT-0 License.
-See the [LICENSE](./LICENSE) resource for more details.
+Latest verification: 18 backend tests passed with 89.72% coverage; 5 frontend
+tests passed; lint and production build succeeded. The build currently emits a
+non-fatal warning that the main JavaScript chunk is larger than 500 kB.
+Backend unit tests mock database access; they do not replace testing against a
+running PostgreSQL instance.
 
-## Roadmap
+## Deploy to AWS
 
-See the
-[open issues](https://github.com/citi/coding-workshop-participant/issues)
-for a list of proposed roadmap features (and known issues).
+Configure AWS credentials and the required workshop infrastructure and
+database settings, then run these commands from the repository root:
 
-## Security
+```sh
+./bin/deploy-backend.sh
+./bin/deploy-frontend.sh
+```
 
-See the
-[Security Issue Notifications](./CONTRIBUTING.md#security-issue-notifications)
-resource for more details.
+After deployment, call `GET <API_BASE_URL>/api/setup` once to initialize the
+database. Set `VITE_API_URL` to the deployed API base URL before building the
+frontend if the deploy process does not set it automatically. Do not expose
+the setup endpoint publicly after initialization unless required.
 
-## Authors
+## Assumptions and known gaps
 
-The following people have contributed to this workshop:
+- A project is considered at risk if it ends within 14 days with deliverable
+  progress below 70%, or if it has an overdue deliverable.
+- Setup seeds sample data only when the corresponding tables are empty.
+- Tokens expire after 12 hours. There is no token refresh, password reset, or
+  user self-service; user administration is restricted to admins.
+- Automated frontend coverage focuses on the API client and project-page role
+  controls. There are no end-to-end browser tests.
+- Service requirements pin psycopg to version 3.2.3. The configured package
+  mirror used during local verification did not provide that version, so
+  verification used psycopg 3.2.13 locally without changing the service
+  requirements.
 
-* Colin Heilman - [@heilmancs](https://github.com/heilmancs)
-* Eugene Istrati - [@eistrati](https://github.com/eistrati)
-* Isaiah Cornelius Smith - [@corneliusmith](https://github.com/corneliusmith)
-* Juan Arevalo - [@jparevalo27](https://github.com/jparevalo27)
-* Michael Annucci - [@michael-annucci](https://github.com/michael-annucci)
-
-## Feedback
-
-We'd love to hear your feedback! Please:
-
-* ⭐ Star the repository if you find it helpful
-* 🐛 Report issues on GitHub
-* 💡 Suggest improvements
-* 📝 Share your experience
+For general workshop guidance, see the [full-stack guide](./docs/full-stack.md)
+and [backend guide](./backend/README.md).
