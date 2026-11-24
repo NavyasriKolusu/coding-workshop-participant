@@ -6,6 +6,7 @@ import './App.css'
 import ProjectsPage from './pages/ProjectsPage.jsx'
 import TeamPage from './pages/TeamPage.jsx'
 import DeliverablesPage from './pages/DeliverablesPage.jsx'
+import BudgetPage from './pages/BudgetPage.jsx'
 
 /** Render the ACME project workspace. */
 function App() {
@@ -30,6 +31,7 @@ function App() {
             <Tab label="Projects" />
             <Tab label="Team & allocations" />
             <Tab label="Deliverables" />
+            <Tab label="Budget" />
           </Tabs>
         </Toolbar>
       </AppBar>
@@ -38,6 +40,7 @@ function App() {
           {activePage === 0 && <ProjectsPage />}
           {activePage === 1 && <TeamPage />}
           {activePage === 2 && <DeliverablesPage />}
+          {activePage === 3 && <BudgetPage />}
         </Box>
       </Container>
     </>
