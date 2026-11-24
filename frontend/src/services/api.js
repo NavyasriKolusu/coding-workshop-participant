@@ -1,0 +1,42 @@
+const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '')
+
+/**
+ * Send a JSON request to one of the Lambda services.
+ * @param {string} service - Backend service name.
+ * @param {string} path - Optional service-relative path.
+ * @param {object} options - Fetch options with an optional JSON body.
+ * @returns {Promise<any>} Parsed JSON response.
+ */
+export async function apiRequest(service, path = '', options = {}) {
+  const token = window.localStorage.getItem('acme-token')
+  const headers = { ...options.headers }
+
+  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(`${apiBaseUrl}/api/${service}${path}`, {
+    ...options,
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+  })
+
+  const payload = response.status === 204 ? null : await response.json()
+  if (!response.ok) {
+    throw new Error(payload?.error || `Request failed (${response.status})`)
+  }
+  return payload
+}
+
+/**
+ * Build a URL query string from non-empty filter values.
+ * @param {object} filters - Filter key/value pairs.
+ * @returns {string} Encoded query string, or an empty string.
+ */
+export function queryString(filters) {
+  const params = new URLSearchParams()
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) params.set(key, value)
+  })
+  const query = params.toString()
+  return query ? `?${query}` : ''
+}
