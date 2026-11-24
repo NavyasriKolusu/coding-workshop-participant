@@ -5,6 +5,7 @@ import { useMediaQuery } from 'react-responsive'
 import './App.css'
 import ProjectsPage from './pages/ProjectsPage.jsx'
 import TeamPage from './pages/TeamPage.jsx'
+import DeliverablesPage from './pages/DeliverablesPage.jsx'
 
 /** Render the ACME project workspace. */
 function App() {
@@ -28,12 +29,15 @@ function App() {
           >
             <Tab label="Projects" />
             <Tab label="Team & allocations" />
+            <Tab label="Deliverables" />
           </Tabs>
         </Toolbar>
       </AppBar>
       <Container maxWidth="xl">
         <Box sx={{ py: 3 }}>
-          {activePage === 0 ? <ProjectsPage /> : <TeamPage />}
+          {activePage === 0 && <ProjectsPage />}
+          {activePage === 1 && <TeamPage />}
+          {activePage === 2 && <DeliverablesPage />}
         </Box>
       </Container>
     </>
