@@ -129,6 +129,21 @@ def current_user(event: dict[str, Any]) -> dict[str, Any]:
         "",
     )
     scheme, _, token = authorization.partition(" ")
+    if not token and os.getenv("IS_LOCAL", "false").lower() == "true":
+        # The local workshop proxy forwards Content-Type but drops Authorization.
+        content_type = next(
+            (value for key, value in headers.items() if key.lower() == "content-type"),
+            "",
+        )
+        token = next(
+            (
+                part.split("=", 1)[1]
+                for part in content_type.split(";")
+                if part.strip().startswith("acme-token=")
+            ),
+            "",
+        )
+        scheme = "bearer" if token else scheme
     if scheme.lower() != "bearer" or not token:
         raise PermissionError("Authentication required")
     claims = _decode_token(token)

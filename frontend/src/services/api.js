@@ -10,8 +10,14 @@ const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3001').rep
 export async function apiRequest(service, path = '', options = {}) {
   const token = window.localStorage.getItem('acme-token')
   const headers = { ...options.headers }
+  const isLocalProxy = new URL(apiBaseUrl).hostname === 'localhost'
 
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  if (options.body !== undefined || (token && isLocalProxy)) {
+    // The local proxy forwards Content-Type but drops Authorization.
+    headers['Content-Type'] = token && isLocalProxy
+      ? `application/json; acme-token=${token}`
+      : 'application/json'
+  }
   if (token) headers.Authorization = `Bearer ${token}`
 
   const response = await fetch(`${apiBaseUrl}/api/${service}${path}`, {

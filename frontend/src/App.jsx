@@ -11,6 +11,7 @@ import TeamPage from './pages/TeamPage.jsx'
 import DeliverablesPage from './pages/DeliverablesPage.jsx'
 import BudgetPage from './pages/BudgetPage.jsx'
 import UsersPage from './pages/UsersPage.jsx'
+import DashboardPage from './pages/DashboardPage.jsx'
 
 /** Render the ACME project workspace. */
 function App() {
@@ -59,6 +60,7 @@ function App() {
     window.localStorage.setItem('acme-token', result.token)
     window.localStorage.setItem('acme-user', JSON.stringify(result.user))
     setUser(result.user)
+    setActivePage('dashboard')
   }
 
   const handleLogout = () => {
@@ -75,6 +77,7 @@ function App() {
 
   const canEdit = user.role === 'admin' || user.role === 'manager'
   const pages = [
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'projects', label: 'Projects' },
     { id: 'team', label: 'Team & allocations' },
     { id: 'deliverables', label: 'Deliverables' },
@@ -107,6 +110,7 @@ function App() {
       </AppBar>
       <Container maxWidth="xl">
         <Box sx={{ py: 3 }}>
+          {activePage === 'dashboard' && <DashboardPage />}
           {activePage === 'projects' && <ProjectsPage canEdit={canEdit} />}
           {activePage === 'team' && <TeamPage canEdit={canEdit} />}
           {activePage === 'deliverables' && <DeliverablesPage canEdit={canEdit} />}
