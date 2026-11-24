@@ -26,8 +26,15 @@ SCHEMA = (
         email TEXT NOT NULL UNIQUE,
         department TEXT NOT NULL,
         title TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'active'
+            CHECK (status IN ('active', 'inactive')),
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
+    """,
+    """
+    ALTER TABLE team_members
+    ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'inactive'))
     """,
     """
     CREATE TABLE IF NOT EXISTS projects (
