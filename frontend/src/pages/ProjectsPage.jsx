@@ -49,7 +49,7 @@ const projectShape = PropTypes.shape({
 })
 
 /** Display and manage projects with search and status/department filters. */
-function ProjectsPage() {
+function ProjectsPage({ canEdit }) {
   const isMobile = useMediaQuery({ maxWidth: 700 })
   const [projects, setProjects] = useState([])
   const [filters, setFilters] = useState({ search: '', status: '', department: '' })
@@ -164,9 +164,11 @@ function ProjectsPage() {
           onChange={(event) => setFilters({ ...filters, department: event.target.value })}
           sx={{ minWidth: 160 }}
         />
-        <Button variant="contained" onClick={() => openForm()} sx={{ minWidth: 140 }}>
-          Add project
-        </Button>
+        {canEdit && (
+          <Button variant="contained" onClick={() => openForm()} sx={{ minWidth: 140 }}>
+            Add project
+          </Button>
+        )}
       </Stack>
 
       {error && <Alert severity="error">{error}</Alert>}
@@ -181,6 +183,7 @@ function ProjectsPage() {
             <ProjectCard
               key={project.id}
               project={project}
+              canEdit={canEdit}
               onEdit={() => openForm(project)}
               onDelete={() => deleteProject(project)}
             />
@@ -196,7 +199,7 @@ function ProjectsPage() {
                 <TableCell>Department</TableCell>
                 <TableCell>Start date</TableCell>
                 <TableCell>End date</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                {canEdit && <TableCell align="right">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -212,10 +215,12 @@ function ProjectsPage() {
                   <TableCell>{project.department}</TableCell>
                   <TableCell>{project.start_date || '-'}</TableCell>
                   <TableCell>{project.end_date || '-'}</TableCell>
-                  <TableCell align="right">
-                    <Button onClick={() => openForm(project)}>Edit</Button>
-                    <Button color="error" onClick={() => deleteProject(project)}>Delete</Button>
-                  </TableCell>
+                  {canEdit && (
+                    <TableCell align="right">
+                      <Button onClick={() => openForm(project)}>Edit</Button>
+                      <Button color="error" onClick={() => deleteProject(project)}>Delete</Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -282,7 +287,7 @@ function ProjectsPage() {
 }
 
 /** Render a project card for small screens. */
-function ProjectCard({ project, onEdit, onDelete }) {
+function ProjectCard({ project, canEdit, onEdit, onDelete }) {
   return (
     <Card>
       <CardContent>
@@ -292,20 +297,23 @@ function ProjectCard({ project, onEdit, onDelete }) {
         <Typography>Department: {project.department || '-'}</Typography>
         <Typography>Ends: {project.end_date || '-'}</Typography>
       </CardContent>
-      <CardActions>
-        <Button onClick={onEdit}>Edit</Button>
-        <Button color="error" onClick={onDelete}>Delete</Button>
-      </CardActions>
+      {canEdit && (
+        <CardActions>
+          <Button onClick={onEdit}>Edit</Button>
+          <Button color="error" onClick={onDelete}>Delete</Button>
+        </CardActions>
+      )}
     </Card>
   )
 }
 
 ProjectCard.propTypes = {
   project: projectShape.isRequired,
+  canEdit: PropTypes.bool.isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
 }
 
-ProjectsPage.propTypes = {}
+ProjectsPage.propTypes = { canEdit: PropTypes.bool.isRequired }
 
 export default ProjectsPage

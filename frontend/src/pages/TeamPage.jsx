@@ -61,7 +61,7 @@ const allocationShape = PropTypes.shape({
 })
 
 /** Manage team members and project allocations. */
-function TeamPage() {
+function TeamPage({ canEdit }) {
   const isMobile = useMediaQuery({ maxWidth: 700 })
   const [members, setMembers] = useState([])
   const [allocations, setAllocations] = useState([])
@@ -250,7 +250,9 @@ function TeamPage() {
       {activeTab === 0 && (
         <Stack spacing={2}>
           <Box>
-            <Button variant="contained" onClick={() => openMemberForm()}>Add team member</Button>
+            {canEdit && (
+              <Button variant="contained" onClick={() => openMemberForm()}>Add team member</Button>
+            )}
           </Box>
           {members.length === 0 && !loading && <Alert severity="info">No team members match these filters.</Alert>}
           {isMobile ? (
@@ -259,6 +261,7 @@ function TeamPage() {
                 <MemberCard
                   key={member.id}
                   member={member}
+                  canEdit={canEdit}
                   onEdit={() => openMemberForm(member)}
                   onDelete={() => deleteMember(member)}
                 />
@@ -274,7 +277,7 @@ function TeamPage() {
                     <TableCell>Title</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Allocation</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    {canEdit && <TableCell align="right">Actions</TableCell>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -288,10 +291,12 @@ function TeamPage() {
                       <TableCell>{member.title}</TableCell>
                       <TableCell>{member.status}</TableCell>
                       <TableCell><AllocationTotal value={member.allocation_total} /></TableCell>
-                      <TableCell align="right">
-                        <Button onClick={() => openMemberForm(member)}>Edit</Button>
-                        <Button color="error" onClick={() => deleteMember(member)}>Delete</Button>
-                      </TableCell>
+                      {canEdit && (
+                        <TableCell align="right">
+                          <Button onClick={() => openMemberForm(member)}>Edit</Button>
+                          <Button color="error" onClick={() => deleteMember(member)}>Delete</Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -303,7 +308,9 @@ function TeamPage() {
       {activeTab === 1 && (
         <Stack spacing={2}>
           <Box>
-            <Button variant="contained" onClick={() => openAllocationForm()}>Add allocation</Button>
+            {canEdit && (
+              <Button variant="contained" onClick={() => openAllocationForm()}>Add allocation</Button>
+            )}
           </Box>
           {allocations.length === 0 && !loading && <Alert severity="info">No allocations match these filters.</Alert>}
           {isMobile ? (
@@ -312,6 +319,7 @@ function TeamPage() {
                 <AllocationCard
                   key={allocation.id}
                   allocation={allocation}
+                  canEdit={canEdit}
                   onEdit={() => openAllocationForm(allocation)}
                   onDelete={() => deleteAllocation(allocation)}
                 />
@@ -328,7 +336,7 @@ function TeamPage() {
                     <TableCell>Project status</TableCell>
                     <TableCell>Allocation</TableCell>
                     <TableCell>Member total</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    {canEdit && <TableCell align="right">Actions</TableCell>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -340,10 +348,12 @@ function TeamPage() {
                       <TableCell>{allocation.project_status.replace('_', ' ')}</TableCell>
                       <TableCell>{allocation.allocation_percent}%</TableCell>
                       <TableCell><AllocationTotal value={allocation.member_allocation_total} /></TableCell>
-                      <TableCell align="right">
-                        <Button onClick={() => openAllocationForm(allocation)}>Edit</Button>
-                        <Button color="error" onClick={() => deleteAllocation(allocation)}>Delete</Button>
-                      </TableCell>
+                      {canEdit && (
+                        <TableCell align="right">
+                          <Button onClick={() => openAllocationForm(allocation)}>Edit</Button>
+                          <Button color="error" onClick={() => deleteAllocation(allocation)}>Delete</Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -449,7 +459,7 @@ function AllocationTotal({ value }) {
   )
 }
 
-function MemberCard({ member, onEdit, onDelete }) {
+function MemberCard({ member, canEdit, onEdit, onDelete }) {
   return (
     <Card>
       <CardContent>
@@ -459,15 +469,17 @@ function MemberCard({ member, onEdit, onDelete }) {
         <Typography>Status: {member.status}</Typography>
         <AllocationTotal value={member.allocation_total} />
       </CardContent>
-      <CardActions>
-        <Button onClick={onEdit}>Edit</Button>
-        <Button color="error" onClick={onDelete}>Delete</Button>
-      </CardActions>
+      {canEdit && (
+        <CardActions>
+          <Button onClick={onEdit}>Edit</Button>
+          <Button color="error" onClick={onDelete}>Delete</Button>
+        </CardActions>
+      )}
     </Card>
   )
 }
 
-function AllocationCard({ allocation, onEdit, onDelete }) {
+function AllocationCard({ allocation, canEdit, onEdit, onDelete }) {
   return (
     <Card>
       <CardContent>
@@ -477,17 +489,19 @@ function AllocationCard({ allocation, onEdit, onDelete }) {
         <Typography>Member total: {allocation.member_allocation_total}%</Typography>
         <AllocationTotal value={allocation.member_allocation_total} />
       </CardContent>
-      <CardActions>
-        <Button onClick={onEdit}>Edit</Button>
-        <Button color="error" onClick={onDelete}>Delete</Button>
-      </CardActions>
+      {canEdit && (
+        <CardActions>
+          <Button onClick={onEdit}>Edit</Button>
+          <Button color="error" onClick={onDelete}>Delete</Button>
+        </CardActions>
+      )}
     </Card>
   )
 }
 
 AllocationTotal.propTypes = { value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]) }
-MemberCard.propTypes = { member: memberShape.isRequired, onEdit: PropTypes.func.isRequired, onDelete: PropTypes.func.isRequired }
-AllocationCard.propTypes = { allocation: allocationShape.isRequired, onEdit: PropTypes.func.isRequired, onDelete: PropTypes.func.isRequired }
-TeamPage.propTypes = {}
+MemberCard.propTypes = { member: memberShape.isRequired, canEdit: PropTypes.bool.isRequired, onEdit: PropTypes.func.isRequired, onDelete: PropTypes.func.isRequired }
+AllocationCard.propTypes = { allocation: allocationShape.isRequired, canEdit: PropTypes.bool.isRequired, onEdit: PropTypes.func.isRequired, onDelete: PropTypes.func.isRequired }
+TeamPage.propTypes = { canEdit: PropTypes.bool.isRequired }
 
 export default TeamPage

@@ -51,7 +51,7 @@ const entryShape = PropTypes.shape({
 })
 
 /** Create and maintain planned and spent project budget entries. */
-function BudgetPage() {
+function BudgetPage({ canEdit }) {
   const isMobile = useMediaQuery({ maxWidth: 700 })
   const [entries, setEntries] = useState([])
   const [projects, setProjects] = useState([])
@@ -192,9 +192,11 @@ function BudgetPage() {
           onChange={(event) => setFilters({ ...filters, department: event.target.value })}
           sx={{ minWidth: 170 }}
         />
-        <Button variant="contained" onClick={() => openForm()} sx={{ minWidth: 150 }}>
-          Add budget entry
-        </Button>
+        {canEdit && (
+          <Button variant="contained" onClick={() => openForm()} sx={{ minWidth: 150 }}>
+            Add budget entry
+          </Button>
+        )}
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}
       {loading && <Typography role="status">Loading budget entries...</Typography>}
@@ -206,6 +208,7 @@ function BudgetPage() {
               key={entry.id}
               entry={entry}
               formatAmount={formatAmount}
+              canEdit={canEdit}
               onEdit={() => openForm(entry)}
               onDelete={() => deleteEntry(entry)}
             />
@@ -222,7 +225,7 @@ function BudgetPage() {
                 <TableCell>Amount</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Department</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                {canEdit && <TableCell align="right">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -237,10 +240,12 @@ function BudgetPage() {
                   <TableCell>{formatAmount(entry.amount)}</TableCell>
                   <TableCell>{entry.entry_date || '-'}</TableCell>
                   <TableCell>{entry.department}</TableCell>
-                  <TableCell align="right">
-                    <Button onClick={() => openForm(entry)}>Edit</Button>
-                    <Button color="error" onClick={() => deleteEntry(entry)}>Delete</Button>
-                  </TableCell>
+                  {canEdit && (
+                    <TableCell align="right">
+                      <Button onClick={() => openForm(entry)}>Edit</Button>
+                      <Button color="error" onClick={() => deleteEntry(entry)}>Delete</Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -312,7 +317,7 @@ function BudgetPage() {
   )
 }
 
-function BudgetCard({ entry, formatAmount, onEdit, onDelete }) {
+function BudgetCard({ entry, formatAmount, canEdit, onEdit, onDelete }) {
   return (
     <Card>
       <CardContent>
@@ -322,10 +327,12 @@ function BudgetCard({ entry, formatAmount, onEdit, onDelete }) {
         <Typography>{entry.department} - {entry.entry_date || 'No date'}</Typography>
         <Typography>{entry.description}</Typography>
       </CardContent>
-      <CardActions>
-        <Button onClick={onEdit}>Edit</Button>
-        <Button color="error" onClick={onDelete}>Delete</Button>
-      </CardActions>
+      {canEdit && (
+        <CardActions>
+          <Button onClick={onEdit}>Edit</Button>
+          <Button color="error" onClick={onDelete}>Delete</Button>
+        </CardActions>
+      )}
     </Card>
   )
 }
@@ -333,9 +340,10 @@ function BudgetCard({ entry, formatAmount, onEdit, onDelete }) {
 BudgetCard.propTypes = {
   entry: entryShape.isRequired,
   formatAmount: PropTypes.func.isRequired,
+  canEdit: PropTypes.bool.isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
 }
-BudgetPage.propTypes = {}
+BudgetPage.propTypes = { canEdit: PropTypes.bool.isRequired }
 
 export default BudgetPage

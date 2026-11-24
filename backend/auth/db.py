@@ -70,6 +70,8 @@ def parse_request(event: dict[str, Any], service: str) -> tuple[str, str, dict[s
     if event.get("isBase64Encoded"):
         body_text = base64.b64decode(body_text).decode("utf-8")
     body = json.loads(body_text) if body_text else {}
+    if not isinstance(body, dict):
+        raise ValueError("Request body must be a JSON object")
     query = event.get("queryStringParameters") or {}
     return method, path, body, query
 

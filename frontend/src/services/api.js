@@ -22,6 +22,11 @@ export async function apiRequest(service, path = '', options = {}) {
 
   const payload = response.status === 204 ? null : await response.json()
   if (!response.ok) {
+    if (response.status === 401 && path !== '/login') {
+      window.localStorage.removeItem('acme-token')
+      window.localStorage.removeItem('acme-user')
+      window.dispatchEvent(new Event('acme:unauthorized'))
+    }
     throw new Error(payload?.error || `Request failed (${response.status})`)
   }
   return payload

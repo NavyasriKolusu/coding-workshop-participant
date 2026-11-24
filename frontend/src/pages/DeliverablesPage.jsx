@@ -60,7 +60,7 @@ const deliverableShape = PropTypes.shape({
 })
 
 /** Manage project deliverables and their dependency chain. */
-function DeliverablesPage() {
+function DeliverablesPage({ canEdit }) {
   const isMobile = useMediaQuery({ maxWidth: 700 })
   const [deliverables, setDeliverables] = useState([])
   const [allDeliverables, setAllDeliverables] = useState([])
@@ -210,9 +210,11 @@ function DeliverablesPage() {
           onChange={(event) => setFilters({ ...filters, department: event.target.value })}
           sx={{ minWidth: 170 }}
         />
-        <Button variant="contained" onClick={() => openForm()} sx={{ minWidth: 155 }}>
-          Add deliverable
-        </Button>
+        {canEdit && (
+          <Button variant="contained" onClick={() => openForm()} sx={{ minWidth: 155 }}>
+            Add deliverable
+          </Button>
+        )}
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}
       {loading && <Typography role="status">Loading deliverables...</Typography>}
@@ -225,6 +227,7 @@ function DeliverablesPage() {
             <DeliverableCard
               key={deliverable.id}
               deliverable={deliverable}
+              canEdit={canEdit}
               onEdit={() => openForm(deliverable)}
               onDelete={() => deleteDeliverable(deliverable)}
             />
@@ -241,7 +244,7 @@ function DeliverablesPage() {
                 <TableCell>Progress</TableCell>
                 <TableCell>Due date</TableCell>
                 <TableCell>Depends on</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                {canEdit && <TableCell align="right">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -261,10 +264,12 @@ function DeliverablesPage() {
                   </TableCell>
                   <TableCell>{deliverable.due_date || '-'}</TableCell>
                   <TableCell>{(deliverable.dependency_names || []).join(', ') || '-'}</TableCell>
-                  <TableCell align="right">
-                    <Button onClick={() => openForm(deliverable)}>Edit</Button>
-                    <Button color="error" onClick={() => deleteDeliverable(deliverable)}>Delete</Button>
-                  </TableCell>
+                  {canEdit && (
+                    <TableCell align="right">
+                      <Button onClick={() => openForm(deliverable)}>Edit</Button>
+                      <Button color="error" onClick={() => deleteDeliverable(deliverable)}>Delete</Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -372,7 +377,7 @@ function DeliverablesPage() {
   )
 }
 
-function DeliverableCard({ deliverable, onEdit, onDelete }) {
+function DeliverableCard({ deliverable, canEdit, onEdit, onDelete }) {
   return (
     <Card>
       <CardContent>
@@ -385,19 +390,22 @@ function DeliverableCard({ deliverable, onEdit, onDelete }) {
         <Typography sx={{ mt: 1 }}>{deliverable.progress}% complete</Typography>
         <LinearProgress variant="determinate" value={deliverable.progress} />
       </CardContent>
-      <CardActions>
-        <Button onClick={onEdit}>Edit</Button>
-        <Button color="error" onClick={onDelete}>Delete</Button>
-      </CardActions>
+      {canEdit && (
+        <CardActions>
+          <Button onClick={onEdit}>Edit</Button>
+          <Button color="error" onClick={onDelete}>Delete</Button>
+        </CardActions>
+      )}
     </Card>
   )
 }
 
 DeliverableCard.propTypes = {
   deliverable: deliverableShape.isRequired,
+  canEdit: PropTypes.bool.isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
 }
-DeliverablesPage.propTypes = {}
+DeliverablesPage.propTypes = { canEdit: PropTypes.bool.isRequired }
 
 export default DeliverablesPage
