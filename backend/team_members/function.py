@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from db import get_connection, parse_request, response
+from db import authorize_request, get_connection, parse_request, response
 
 
 FIELDS = {
@@ -56,6 +56,10 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         method, path, body, query = parse_request(event, "team_members")
         if method == "OPTIONS":
             return response({}, 200)
+        if method in {"GET", "POST", "PUT", "DELETE"}:
+            access_error = authorize_request(event, method)
+            if access_error:
+                return access_error
         member_id = _member_id(path)
 
         with get_connection().cursor() as cursor:
