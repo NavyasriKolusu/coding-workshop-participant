@@ -1,19 +1,42 @@
+import { useState } from 'react'
 import PropTypes from 'prop-types'
-import { Box, Container, Typography } from '@mui/material'
+import { AppBar, Box, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
+import { useMediaQuery } from 'react-responsive'
 import './App.css'
 import ProjectsPage from './pages/ProjectsPage.jsx'
+import TeamPage from './pages/TeamPage.jsx'
 
 /** Render the ACME project workspace. */
 function App() {
+  const isMobile = useMediaQuery({ maxWidth: 600 })
+  const [activePage, setActivePage] = useState(0)
+
   return (
-    <Container maxWidth="xl">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          ACME Inc. Projects
-        </Typography>
-        <ProjectsPage />
-      </Box>
-    </Container>
+    <>
+      <AppBar position="static">
+        <Toolbar sx={{ flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            ACME Inc. Project Management
+          </Typography>
+          <Tabs
+            value={activePage}
+            onChange={(_, value) => setActivePage(value)}
+            variant={isMobile ? 'scrollable' : 'standard'}
+            textColor="inherit"
+            indicatorColor="secondary"
+            aria-label="Main navigation"
+          >
+            <Tab label="Projects" />
+            <Tab label="Team & allocations" />
+          </Tabs>
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="xl">
+        <Box sx={{ py: 3 }}>
+          {activePage === 0 ? <ProjectsPage /> : <TeamPage />}
+        </Box>
+      </Container>
+    </>
   )
 }
 
